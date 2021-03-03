@@ -6,7 +6,7 @@ def remove_mean(map_= None):
 	map_ = np.array([[map_[i] - np.mean(map_[i],axis=0)] for i in range(len_nu_ch)])
 	return map_[:,0,:]
     
-def getmaps(type_= None, observed_without_mean=True, apply_mask = False, add_white_noise=True, sigmaE=None, path = "/home/marins/Documents/Programmation/BINGO/Component Separation/maps",
+def getmaps(type_= None, observed_without_mean=True, apply_mask = False, add_noise=True, sigmaE=None, path = "/home/marins/Documents/Programmation/BINGO/Component Separation/maps",
             name_21cm="(0)Cube_21_Smooth_L10.fits", name_fg =  "(0)Cube_5PSM_L10_RS.fits", name_mask = "Mask_Bin.fits", name_noise = "bingo_WN_256_mK_CubeA_100Masked.fits", name_prior = None):
 	import os
 	
@@ -102,7 +102,7 @@ def getmaps(type_= None, observed_without_mean=True, apply_mask = False, add_whi
 			maps["noise"] = noise
 		else: 
 			raise NameError
-		del WN
+		del noise
 		
 	if apply_mask:
 		pathmask = os.path.join(path,name_mask)
