@@ -330,7 +330,7 @@ def saveouts(mrec=None,pathout=None, iseed=None, J=3, div=3+1,header= None,plot_
 			savedata(Cl_= A.T, filename="A"+str(i), path=path, iseed=iseed, header="")
 	if "noise" in subdirs:
 		path    = os.path.join(pathout,"noise")
-		nu,npix = np.shape(mrec)
+		nu,npix = np.shape(mrec) #Here, mrec==cube of maps and not a python dictionary
 		nside   = hp.npix2nside(npix)
 		L       =  3*nside
 		cl      = np.zeros((nu,L))
@@ -340,7 +340,7 @@ def saveouts(mrec=None,pathout=None, iseed=None, J=3, div=3+1,header= None,plot_
 		del cl
 	if "prior" in subdirs:
 		path    = os.path.join(pathout,"prior")
-		nu,npix = np.shape(mrec)
+		nu,npix = np.shape(mrec) #Here, mrec==cube of maps and not a python dictionary
 		nside   = hp.npix2nside(npix)
 		L       =  3*nside
 		cl      = np.zeros((nu,L))
@@ -350,7 +350,7 @@ def saveouts(mrec=None,pathout=None, iseed=None, J=3, div=3+1,header= None,plot_
 		del cl		
 	if "pure" in subdirs:
 		path    = os.path.join(pathout,"pure")
-		nu,npix = np.shape(mrec)
+		nu,npix = np.shape(mrec) #Here, mrec==cube of maps and not a python dictionary
 		nside   = hp.npix2nside(npix)
 		L       =  3*nside
 		cl      = np.zeros((nu,L))
