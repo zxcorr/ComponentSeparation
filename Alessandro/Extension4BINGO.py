@@ -5,11 +5,10 @@ def remove_mean(map_= None):
 	len_nu_ch = np.shape(map_)[0]
 	map_ = np.array([[map_[i] - np.mean(map_[i],axis=0)] for i in range(len_nu_ch)])
 	return map_[:,0,:]
-    
+
 def getmaps(type_= None, observed_without_mean=True, apply_mask = False, add_noise=True, sigmaE=None, path = "/home/marins/Documents/Programmation/BINGO/Component Separation/maps",
-            name_21cm="(0)Cube_21_Smooth_L10.fits", name_fg =  "(0)Cube_5PSM_L10_RS.fits", name_mask = "Mask_Bin.fits", name_noise = "bingo_WN_256_mK_CubeA_100Masked.fits", name_prior = None):
+name_21cm="(0)Cube_21_Smooth_L10.fits", name_fg =  "(0)Cube_5PSM_L10_RS.fits", name_mask = "Mask_Bin.fits", name_noise = None, name_prior = None, name_pure=None):
 	import os
-	
 	if type_=="MeerKAT":
 		import h5py
 		path2file = os.path.join(path,'sim_10MHz.hd5')
@@ -80,7 +79,7 @@ def getmaps(type_= None, observed_without_mean=True, apply_mask = False, add_noi
 
 	elif type_=="pure":
 		import astropy.io.fits as fits
-		path   = os.path.join(path,name_prior)
+		path   = os.path.join(path,name_pure)
 		with fits.open(path) as h:
 			maps = h[0].data
 		return maps
@@ -276,7 +275,7 @@ def white_noise(maps=None, sigmaE=None):
 		WN+=sigmaE
 	return WN
 
-def noisedebiasing(Cls_=None, seed_used=10, dir_hi = "21cm", dir_prior="prior", dir_noise = "noise" ,type_="filipe"): #Cls=dictionary with all of components #type_=filipe or mathieu
+def noisedebiasing(Cls_ = None, seed_used = None, dir_hi = None, dir_prior = None, dir_noise = None , dir_pure = None, dir_projpure = None, dir_projnoise = None, dir_projprior = None, type_ = None): #Cls=dictionary with all of components #type_=filipe or mathieu
     if type_=="filipe":
         if not type(Cls_)==dict:
             raise Exception("Cls is not a dictionary!")
@@ -295,11 +294,32 @@ def noisedebiasing(Cls_=None, seed_used=10, dir_hi = "21cm", dir_prior="prior", 
                 S         += Cls_[dir_hi][Li]/Cls_[dir_prior][Li]
                 Cls_noise += Cls_[dir_noise][Li]
 
-        S         = S/len(Cls_[dir_hi].keys())
-        Cls_noise = Cls_noise/len(Cls_[dir_hi].keys())
+        S         = S/(len(Cls_[dir_hi].keys()))
+        Cls_noise = Cls_noise/(len(Cls_[dir_hi].keys()))
         Cls_ndb   = (Cls_L0/S) - Cls_noise    
-        del Cls_noise, S
-        return Cls_ndb
+        return {"Cls_debias":Cls_ndb,"S":S,"Cls_noise":Cls_noise}
+    elif type_=="mathieu":
+        if not type(Cls_)==dict:
+            raise Exception("Cls is not a dictionary!")
+
+        L0     = "L{}".format(seed_used)
+        Cls_L0 = Cls_[dir_hi][L0]
+
+        for k in Cls_.keys():
+            del Cls_[k][L0]
+
+        for i, Li in enumerate(Cls_[dir_hi].keys()):
+            if i==0:
+                S             = Cls_[dir_projpure][Li]/Cls_[dir_pure][Li]
+                Cls_projnoise = Cls_[dir_projnoise][Li]
+            else:
+                S             += Cls_[dir_projpure][Li]/Cls_[dir_pure][Li]
+                Cls_projnoise += Cls_[dir_projnoise][Li]
+
+        S             = S/(len(Cls_[dir_hi].keys()))
+        Cls_projnoise = Cls_projnoise/(len(Cls_[dir_hi].keys()))
+        Cls_ndb       = (Cls_L0 - Cls_projnoise)/S
+        return {"Cls_debias":Cls_ndb,"S":S,"Cls_noise":Cls_projnoise}        
 
 def savedata(Cl_, filename=None, path=None, iseed=None, header= "Cl pix p/ column, bin p/ row"):
     nu,npix = Cl_.shape
@@ -307,7 +327,8 @@ def savedata(Cl_, filename=None, path=None, iseed=None, header= "Cl pix p/ colum
     pathname = os.path.join(path,filename)
     np.savetxt(pathname, Cl_.T, fmt=["%e"]*nu, delimiter=" ", header=header)
 
-def saveouts(mrec=None,pathout=None, iseed=None, J=3, div=3+1,header= None,plot_="reconstruction", subdirs=["21cm","foregrounds","mixmatrix"]): #mrec can be a dictionary when used with 21cm, foregrounds and mixmatrix; or a matrix when white_noise
+#mrec can be a dictionary when used with 21cm, foregrounds and mixmatrix; or a matrix when white_noise
+def saveouts(mrec=None, A=None, pathout=None, iseed=None, J=3, div=3+1,header= None, plot_="reconstruction", subdirs=["21cm","foregrounds","mixmatrix"], without_covx=True):
 	import healpy as hp
 	subdirs = np.asarray(subdirs)
 	ind     = np.union1d(np.where(subdirs=="21cm")[0],np.where(subdirs=="foregrounds")[0])
@@ -358,8 +379,41 @@ def saveouts(mrec=None,pathout=None, iseed=None, J=3, div=3+1,header= None,plot_
 			cl[inu] += hp.anafast(mrec[inu], lmax=L-1)
 		savedata(Cl_=cl, filename="cl", path=path, iseed=iseed)
 		del cl		
-					
-def checkdir(pathout=None, subdirs=["21cm","foregrounds","mixmatrix","prior","noise","pure"], return_=True):
+	if "projpure" in subdirs:
+		path    = os.path.join(pathout,"projpure")
+		nu,npix = np.shape(mrec) #Here, mrec==cube of maps and not a python dictionary
+		nside   = hp.npix2nside(npix)
+		L       =  3*nside
+		cl      = np.zeros((nu,L))		
+		R21     = Residual_maps(X=mrec,Ae=A,without_covx=without_covx)["foregrounds"] #A = A[Li] #here, I used "foregrounds" because it is Wfg*X (X=Xpure)
+		for inu in range(nu):
+			cl[inu] += hp.anafast(R21[inu], lmax=L-1)
+		savedata(Cl_=cl, filename="cl", path=path, iseed=iseed)
+		del cl				
+	if "projnoise" in subdirs:
+		path    = os.path.join(pathout,"projnoise")
+		nu,npix = np.shape(mrec) #Here, mrec==cube of maps and not a python dictionary
+		nside   = hp.npix2nside(npix)
+		L       =  3*nside
+		cl      = np.zeros((nu,L))		
+		R21     = Residual_maps(X=mrec,Ae=A,without_covx=without_covx)["foregrounds"] #A = A[Li] #here, I used "foregrounds" because it is Wfg*X (X=Xnoise)
+		for inu in range(nu):
+			cl[inu] += hp.anafast(R21[inu], lmax=L-1)
+		savedata(Cl_=cl, filename="cl", path=path, iseed=iseed)
+		del cl						
+	if "projprior" in subdirs:
+		path    = os.path.join(pathout,"projprior")
+		nu,npix = np.shape(mrec) #Here, mrec==cube of maps and not a python dictionary
+		nside   = hp.npix2nside(npix)
+		L       =  3*nside
+		cl      = np.zeros((nu,L))		
+		R21     = Residual_maps(X=mrec,Ae=A,without_covx=without_covx)["21cm"] #A = A[Li] #here, I used "foregrounds" because it is Wfg*X (X=Xnoise)
+		for inu in range(nu):
+			cl[inu] += hp.anafast(R21[inu], lmax=L-1)
+		savedata(Cl_=cl, filename="cl", path=path, iseed=iseed)
+		del cl								
+
+def checkdir(pathout=None, subdirs=["21cm","foregrounds","mixmatrix","prior","noise","pure","projpure","projnoise","projprior"], return_=True):
     import shutil
     if not os.path.isdir(pathout):
         os.makedirs(pathout)
@@ -373,7 +427,25 @@ def checkdir(pathout=None, subdirs=["21cm","foregrounds","mixmatrix","prior","no
     else:
         return None
 
-def loadcls(pathcls=None,dirs=["21cm","foregrounds","prior","noise","pure"]):
+def clsbinned(cls=None,del_l=10,l0=0): #cl= matrix with the rows being maps and columns spatial positions #del_l=size of the binned #l0=start multipole 
+    l_     = np.arange(len(cls)) #l=[0,1,2,...,lmax]
+    lmin   = max(l0,min(l_)) 
+    n_dell = int((max(l_)-lmin)/del_l) #number of multipole bins
+    lmax   = n_dell*del_l + lmin - 1
+    lnew_  = np.arange(lmin,lmax+1,1) #new vector of multipoles
+    clnew = np.empty((n_dell))
+    lnew   = []
+    for bin_l in range(n_dell):
+        l_ini    = int(bin_l*del_l)
+        l_ini    = int(lnew_[l_ini])
+        l_bin    = np.arange(l_ini,int(l_ini + del_l))
+        weight_l = 2*l_bin + np.ones(len(l_bin))
+        clnew[bin_l] = np.dot(weight_l,cls[l_bin])/np.sum(weight_l)
+        lnew.append(l_ini)
+    lnew=np.asarray(lnew)
+    return lnew,clnew
+    
+def loadcls(pathcls=None,dirs=["21cm","foregrounds","prior","noise","pure","projpure","projnoise"]):
 	for i,dir_ in enumerate(dirs):
 		path  = os.path.join(pathcls,dir_)
 		names = os.listdir(path)
@@ -389,3 +461,22 @@ def loadcls(pathcls=None,dirs=["21cm","foregrounds","prior","noise","pure"]):
 		else:
 			Cls[dir_]=cls
 	return Cls
+	
+def loadmixmatrix(pathA=None, mixmatrixdir ="mixmatrix"):
+    path  = os.path.join(pathA,mixmatrixdir)
+    names = os.listdir(path)
+    for j,iname in enumerate(names):
+        num = iname.split("_")[-1].split(".")[0]
+        Ai = np.loadtxt(os.path.join(path,iname))
+        if j==0:
+            A = {num:Ai}
+        else:
+            A[num] = Ai
+    return A
+
+def index_cls_binned(l_,lbin_):
+    inds = []
+    for il in lbin_:
+        i = np.where(l_==il)[0][0]
+        inds.append(i)
+    return np.asarray(inds)
