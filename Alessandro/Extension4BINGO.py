@@ -407,7 +407,7 @@ def saveouts(mrec=None, A=None, pathout=None, iseed=None, J=3, div=3+1,header= N
 		nside   = hp.npix2nside(npix)
 		L       =  3*nside
 		cl      = np.zeros((nu,L))		
-		R21     = Residual_maps(X=mrec,Ae=A,without_covx=without_covx)["21cm"] #A = A[Li] #here, I used "foregrounds" because it is Wfg*X (X=Xnoise)
+		R21     = Residual_maps(X=mrec,Ae=A,without_covx=without_covx)["foregrounds"] #A = A[Li] #here, I used "foregrounds" because it is Wfg*X (X=Xprior)
 		for inu in range(nu):
 			cl[inu] += hp.anafast(R21[inu], lmax=L-1)
 		savedata(Cl_=cl, filename="cl", path=path, iseed=iseed)
