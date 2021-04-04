@@ -19,7 +19,7 @@ It also is necessary to download gmca package from github
 
 (env) ~$ git clone https://github.com/isab3lla/gmca4im.git\
 (env) ~$ mv gmca4im/scripts/* .\
-(env) ~$ rm -rf gmca4im
+(env) ~$ rm -rf gmca4im\
 
 
 ### To Run jupyter notebook
