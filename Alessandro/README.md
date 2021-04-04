@@ -1,12 +1,11 @@
-
-# To Install necessary packages
+### To Install necessary packages
 
 1) Build a environment
 
 ~$ python3 -m pip install --user virtualenv
 ~$ python3 -m pip install requests
 
-I will that assume that you will create your environment in /path/to/new/virtual/environment been /home/user/env:
+I will assume that you will create your environment in /path/to/new/virtual/environment by being /home/user/env:
 
 ~$ python3 -m venv /home/user/env
 ~$ source /home/user/env/bin/activate
@@ -23,4 +22,4 @@ It also is necessary to download gmca package from github
 (env) ~$ rm -rf gmca4im
 
 
-# To Run jupyter notebook
+### To Run jupyter notebook
