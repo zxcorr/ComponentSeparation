@@ -197,7 +197,8 @@ def noise_map(sigma,nside=512):
 # spherical or 2D patch?
 def wavelet_transform(X,J=3): #X is a cube with [X]=nch x npix. X[:,i] = is a spectrum fo the i-pixel on the sphere. X[i,:] is a i-map on the sphere.
 
-	print('\nWavelet transforming the data . . .')
+	#print('\nWavelet transforming the data . . .')
+	print('Starting Starlet transform ...')
 	start_w = time.time()
 
 	X_wt  = np.zeros((len(X),len(X[0])*J))
@@ -211,7 +212,7 @@ def wavelet_transform(X,J=3): #X is a cube with [X]=nch x npix. X[:,i] = is a sp
 
 	end_w = time.time()
 	tw = end_w - start_w
-	print('. . completed in %.2f minutes\n'%(tw/60))
+	print("Finished wavelet transform(s) in: {:.2f} min".format(tw/60))		
 	del tw,end_w,start_w
 
 	return X_wt, np.asarray(cX_wt)	
