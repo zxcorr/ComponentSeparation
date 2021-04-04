@@ -22,4 +22,10 @@ It also is necessary to download gmca package from github
 (env) ~$ rm -rf gmca4im\
 
 
-### To Run jupyter notebook
+### Running jupyter notebook
+
+
+### Running terminal script
+
+
+### Seeing results
