@@ -148,7 +148,7 @@ parser.add_argument('--name_mask'     , action = 'store', dest = 'name_mask'    
 ###############################################################################
 arguments = parser.parse_args()
 method         = str(arguments.method)
-wtransform     = np.asarray(arguments.wtransform.split(","))
+wtransform     = np.asarray(arguments.wtransform.split(",")) if type(arguments.wtransform)==str else np.asarray(arguments.wtransform)
 maps_wout_mean = bool(arguments.maps_wout_mean)
 apply_mask     = bool(arguments.apply_mask) 
 add_noise      = bool(arguments.add_noise)
