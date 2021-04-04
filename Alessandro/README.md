@@ -5,12 +5,12 @@
 ~$ python3 -m pip install --user virtualenv\
 ~$ python3 -m pip install requests
 
-I will assume that you will create your environment in /path/to/new/virtual/environment by being /home/user/env:
+I will assume that you will create your environment in **/path/to/new/virtual/environment** by being **/home/user/env**:
 
 ~$ python3 -m venv /home/user/env\
 ~$ source /home/user/env/bin/activate
 
-Now, I will assume that you requirement.txt is in /home/user/directoryCS/requirements.txt. Then,
+Now, I will assume that you requirement.txt is in **/home/user/directoryCS/requirements.txt**. Then,
 
 (env) ~$ cd /home/user/directoryCS/\
 (env) ~$ python3 -m pip install -r requirements.txt
