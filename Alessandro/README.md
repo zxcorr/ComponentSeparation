@@ -1,4 +1,4 @@
-### To Install necessary packages
+### Installing necessary packages
 
 1) Build a environment
 
