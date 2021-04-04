@@ -17,7 +17,7 @@ Now, I will assume that you requirement.txt is in **/home/user/directoryCS/requi
 
 It also is necessary to download gmca package from github
 
-(env) ~$ git clone https://github.com/isab3lla/gmca4im.git\
+(env) ~$ git clone https://github.com/isab3lla/gmca4im.git \
 (env) ~$ mv gmca4im/scripts/* .\
 (env) ~$ rm -rf gmca4im\
 
