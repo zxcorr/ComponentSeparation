@@ -1,0 +1,9 @@
+pip >= 21.0.1
+numpy >= 1.19.4
+pandas >= 0.25.3
+scikit-learn >= 0.22.2.post1
+setuptools >= 41.2.0
+pys2let >= 2.2.1
+healpy >= 1.13.0
+astropy >= 4.1
+PyWavelets >= 1.1.1
