@@ -7,3 +7,4 @@ pys2let >= 2.2.1
 healpy >= 1.13.0
 astropy >= 4.1
 PyWavelets >= 1.1.1
+progressbar >= 2.3
