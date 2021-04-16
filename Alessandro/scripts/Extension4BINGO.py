@@ -128,16 +128,16 @@ def maps2CSmaps(X, params_WT, params_CS):
 	if "countourlets" in params_WT.wtransform:
 		raise NameError("Not implemented yet: {0}".format(params_WT.wtransform))    
 	##########
+	# Needlets	
+	if  "needlets" in params_WT.wtransform:
+		raise NameError("Not implemented yet: {0}".format(params_WT.wtransform))    	
+	##########
 	# Identity   
 	if "identity" in params_WT.wtransform:
 		building_dictmaps(X,None,params_WT,"identity")
 	#####################################
 	#dictionary(ies)
-	if params_WT.wtransform.size>1:
-		return w2CSmaps(overdictionary(params_WT), X, params_WT, params_CS)
-	else:
-		return w2CSmaps(params_WT.Xwt[0], X, params_WT, params_CS)
-        
+	return w2CSmaps(overdictionary(params_WT), X, params_WT, params_CS)        
 
 def w2CSmaps(X_wt, X, params_WT, params_CS):
 	print("Component Analysis: Starting {} method ...".format(params_CS.method.upper()))
@@ -202,11 +202,15 @@ def w2CSmaps(X_wt, X, params_WT, params_CS):
 # Dictionaries/Riesz Basis: types
 ########################################################################################################################
 def overdictionary(params_WT):
-    Xwt=[]
-    for i in range(params_WT.nbins):
-        Xwt.append(np.vstack([params_WT.Xwt[name][i,:].reshape(-1,params_WT.J_types[name]).T for name in params_WT.wtransform]).T.flatten())
+    if params_WT.wtransform.size==1:
+        Xwt = params_WT["Xwt"][0]
+    else:
+        Xwt=[]
+        for i in range(params_WT.nbins):
+            Xwt.append(np.vstack([params_WT.Xwt[name][i,:].reshape(-1,params_WT.J_types[name]).T for name in params_WT.wtransform]).T.flatten())
     del params_WT["Xwt"],params_WT["J_types"]
     return np.asarray(Xwt)
+
 def verPyWavelets(params_WT):
 ## 
 # Type of Wavelet Transforms ACCEPTED
@@ -219,9 +223,9 @@ def verPyWavelets(params_WT):
 #bior family: bior1.1, bior1.3, bior1.5, bior2.2, bior2.4, bior2.6, bior2.8, bior3.1, bior3.3, bior3.5, bior3.7, bior3.9, bior4.4, bior5.5, bior6.8
 #dmey family: dmey
 	import pywt
-	db  = np.array(["db"+str(i+1) for i in range(38)])
-	sym  = np.array(["sym"+str(i+1) for i in range(20)])
-	coif = np.array(["coif"+str(i+1) for i in range(17)])
+	db   = np.array(["db"  + str(i+1) for i in range(38)])
+	sym  = np.array(["sym" + str(i+1) for i in range(20)])
+	coif = np.array(["coif"+ str(i+1) for i in range(17)])
 	bior = np.array(["bior1.1", "bior1.3", "bior1.5", "bior2.2", "bior2.4", "bior2.6", "bior2.8", "bior3.1", "bior3.3", "bior3.5", "bior3.7", "bior3.9", "bior4.4", "bior5.5", "bior6.8"])
 	haar = np.array(["haar"])
 	dmey = np.array(["dmey"])
@@ -651,7 +655,7 @@ def noisedebiasing(Cls_ = None, seed_used = None, dir_hi = None, dir_prior = Non
 			else:
 				S         += cls_[dir_hi][Li]/cls_[dir_prior][Li]
 				cls_noise += cls_[dir_noise][Li]
-		S         = S/(len(cls_[dir_hi].keys()))
+		S         =         S/(len(cls_[dir_hi].keys()))
 		cls_noise = cls_noise/(len(cls_[dir_hi].keys()))
 		cls_ndb   = (cls_L0/S) - cls_noise
 		del cls_, cls_L0
@@ -670,7 +674,7 @@ def noisedebiasing(Cls_ = None, seed_used = None, dir_hi = None, dir_prior = Non
 			else:
 				S             += cls_[dir_projpure][Li]/cls_[dir_pure][Li]
 				cls_projnoise += cls_[dir_projnoise][Li]
-		S             = S/(len(cls_[dir_hi].keys()))
+		S             =             S/(len(cls_[dir_hi].keys()))
 		cls_projnoise = cls_projnoise/(len(cls_[dir_hi].keys()))
 		cls_ndb       = (cls_L0 - cls_projnoise)/S
 		del cls_, cls_L0
