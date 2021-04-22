@@ -1,3 +1,5 @@
+# CHISEL - Co-HI Signals: Extraction from Line intensity
+
 ### Installing necessary packages
 
 1) Build a environment
