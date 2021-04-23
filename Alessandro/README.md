@@ -1,4 +1,4 @@
-# CHISEL - Co-HI Signals: Extraction from Line intensity
+# CHISEL - Co-HI Signals: Extraction from Line-intensity mapping
 
 ### Installing necessary packages
 
